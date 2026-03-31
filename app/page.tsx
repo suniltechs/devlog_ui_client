@@ -1,65 +1,117 @@
-import Image from "next/image";
+"use client";
+
+import { useSocket, LogEntry } from '../hooks/useSocket';
+import { useState, useMemo } from 'react';
+import { LogViewer } from '../components/LogViewer';
+import { FilterBar } from '../components/FilterBar';
+import { ControlBar } from '../components/ControlBar';
+import { LogInput } from '../components/LogInput';
+import { ErrorSpotlight } from '../components/ErrorSpotlight';
 
 export default function Home() {
+  const { 
+    isConnected, 
+    logs, 
+    emitLog, 
+    clearLogs, 
+    isPaused, 
+    togglePause, 
+    bufferSize,
+    latestError
+  } = useSocket(process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:4000');
+  
+  const [filter, setFilter] = useState<'all' | 'error'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredLogs = useMemo(() => {
+    let result = logs;
+    
+    if (filter === 'error') {
+      result = result.filter((log) => log.type === 'error');
+    }
+    
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      result = result.filter((log) => log.message.toLowerCase().includes(query));
+    }
+    
+    return result;
+  }, [logs, filter, searchQuery]);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <main className="flex h-screen w-full bg-zinc-950 text-zinc-100 overflow-hidden selection:bg-blue-500/30">
+      {/* Main Dashboard Container */}
+      <div className="flex flex-col flex-1 max-w-7xl mx-auto border-x border-white/5 bg-zinc-950 shadow-2xl overflow-hidden relative">
+        
+        {/* Header Section */}
+        <header className="flex items-center justify-between px-6 py-4 bg-zinc-950 border-b border-white/5 shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-black italic transform -skew-x-12 shadow-inner">
+              DL
+            </div>
+            <div>
+              <h1 className="text-lg font-black tracking-tight leading-tight uppercase transform skew-x-[-2deg]">
+                DevLog <span className="text-blue-500">Dashboard</span>
+              </h1>
+              <p className="text-[10px] text-zinc-500 font-mono tracking-widest uppercase opacity-80">
+                Real-Time Monitoring Protocol v5.0
+              </p>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-4">
+            <div className="flex flex-col items-end">
+              <span className="text-[10px] font-mono text-zinc-500 uppercase">Buffer Utilization</span>
+              <div className="w-24 h-1.5 bg-zinc-900 rounded-full overflow-hidden border border-white/5">
+                <div 
+                  className="h-full bg-blue-500 transition-all duration-500" 
+                  style={{ width: `${(logs.length / 100) * 100}%` }}
+                />
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Filters Top Bar */}
+        <FilterBar 
+          filter={filter} 
+          setFilter={setFilter} 
+          count={filteredLogs.length} 
+          total={logs.length}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+
+        {/* Error Spotlight Banner */}
+        <ErrorSpotlight errorLog={latestError} />
+
+        {/* Large Log Viewer Area */}
+        <div className="flex-1 relative bg-[radial-gradient(circle_at_center,_transparent_0%,_rgba(0,0,0,0.4)_100%)] overflow-hidden">
+          <LogViewer logs={filteredLogs} searchQuery={searchQuery} />
+          
+          {/* Pause Overlay Indicator */}
+          {isPaused && (
+            <div className="absolute top-4 right-4 bg-yellow-500/10 border border-yellow-500/30 backdrop-blur-md px-3 py-1 rounded-full flex items-center gap-2 pointer-events-none animate-in fade-in zoom-in duration-300 z-30">
+              <span className="w-2 h-2 bg-yellow-500 rounded-full animate-ping" />
+              <span className="text-[10px] font-bold text-yellow-500 uppercase tracking-widest">
+                Updates Paused · Buffer: {bufferSize}
+              </span>
+            </div>
+          )}
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        {/* Footer Section: Controls + Input */}
+        <div className="flex flex-col shrink-0 relative z-40 bg-zinc-950">
+          <LogInput emitLog={emitLog} />
+          <ControlBar 
+            isConnected={isConnected}
+            isPaused={isPaused}
+            togglePause={togglePause}
+            clearLogs={clearLogs}
+            bufferSize={bufferSize}
+          />
         </div>
-      </main>
-    </div>
+      </div>
+    </main>
   );
 }
