@@ -41,8 +41,8 @@ A high-performance, real-time log monitoring dashboard designed to provide insta
 
 1.  **Clone the repository**:
     ```bash
-    git clone [repository-url]
-    cd devlog-ui/client
+    git clone https://github.com/suniltechs/devlog_ui_client.git
+    cd devlog_ui_client
     ```
 
 2.  **Install dependencies**:
