@@ -3,8 +3,8 @@
 import React, { useEffect, useRef } from 'react';
 
 interface FilterBarProps {
-  filter: 'all' | 'error';
-  setFilter: (filter: 'all' | 'error') => void;
+  filter: 'all' | 'info' | 'success' | 'warning' | 'error';
+  setFilter: (filter: 'all' | 'info' | 'success' | 'warning' | 'error') => void;
   count: number;
   total: number;
   searchQuery: string;
@@ -13,6 +13,14 @@ interface FilterBarProps {
 
 export const FilterBar: React.FC<FilterBarProps> = ({ filter, setFilter, count, total, searchQuery, setSearchQuery }) => {
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  const filters = [
+    { id: 'all', label: 'All', color: 'bg-zinc-700 text-white', inactive: 'text-zinc-400 hover:text-white hover:bg-white/5' },
+    { id: 'info', label: 'Info', color: 'bg-blue-500/20 text-blue-400 border border-blue-500/30', inactive: 'text-zinc-400 hover:text-blue-400 hover:bg-blue-500/5' },
+    { id: 'success', label: 'Success', color: 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30', inactive: 'text-zinc-400 hover:text-emerald-400 hover:bg-emerald-500/5' },
+    { id: 'warning', label: 'Warning', color: 'bg-amber-500/20 text-amber-400 border border-amber-500/30', inactive: 'text-zinc-400 hover:text-amber-400 hover:bg-amber-500/5' },
+    { id: 'error', label: 'Error', color: 'bg-red-500/20 text-red-500 border border-red-500/30', inactive: 'text-zinc-400 hover:text-red-400 hover:bg-red-500/5' },
+  ] as const;
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -27,27 +35,18 @@ export const FilterBar: React.FC<FilterBarProps> = ({ filter, setFilter, count, 
 
   return (
     <div className="flex items-center gap-4 p-4 bg-zinc-900/50 border-b border-white/5 backdrop-blur-md sticky top-0 z-10 w-full">
-      <div className="flex bg-zinc-800 p-0.5 rounded-lg border border-white/5 shrink-0">
-        <button
-          onClick={() => setFilter('all')}
-          className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${
-            filter === 'all' 
-            ? 'bg-zinc-700 text-white shadow-sm' 
-            : 'text-zinc-400 hover:text-white'
-          }`}
-        >
-          All Logs
-        </button>
-        <button
-          onClick={() => setFilter('error')}
-          className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${
-            filter === 'error' 
-            ? 'bg-red-500/20 text-red-500 shadow-sm' 
-            : 'text-zinc-400 hover:text-red-400'
-          }`}
-        >
-          Errors Only
-        </button>
+      <div className="flex gap-1.5 bg-zinc-950 p-1 rounded-xl border border-white/5 shrink-0 shadow-inner">
+        {filters.map((f) => (
+          <button
+            key={f.id}
+            onClick={() => setFilter(f.id as any)}
+            className={`px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all duration-200 ${
+              filter === f.id ? f.color : f.inactive
+            }`}
+          >
+            {f.label}
+          </button>
+        ))}
       </div>
       
       {/* Search Bar */}

@@ -54,9 +54,19 @@ export const ControlBar: React.FC<ControlBarProps> = ({
           🗑 CLEAR
         </button>
       </div>
-
-      <div className="ml-auto text-xs text-zinc-600 font-mono italic">
-        v1.0.0-phase7
+      <div className="ml-auto flex items-center gap-2 pr-2">
+        <span className="text-[10px] font-mono text-zinc-600 uppercase tracking-widest">Dev by</span>
+        <a 
+          href="https://www.linkedin.com/in/sunil-sowrirajan-40548826b/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="group flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-blue-500/5 hover:bg-blue-500/10 border border-blue-500/10 hover:border-blue-500/30 transition-all duration-300"
+        >
+          <span className="text-[10px] font-bold text-zinc-500 group-hover:text-blue-400 transition-colors uppercase tracking-tight">Sunil Sowrirajan</span>
+          <svg className="w-2.5 h-2.5 text-zinc-600 group-hover:text-blue-500 transition-all transform group-hover:rotate-45" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+          </svg>
+        </a>
       </div>
     </div>
   );

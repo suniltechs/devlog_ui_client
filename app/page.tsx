@@ -5,8 +5,8 @@ import { useState, useMemo } from 'react';
 import { LogViewer } from '../components/LogViewer';
 import { FilterBar } from '../components/FilterBar';
 import { ControlBar } from '../components/ControlBar';
-import { LogInput } from '../components/LogInput';
 import { ErrorSpotlight } from '../components/ErrorSpotlight';
+import { StatsBar } from '../components/StatsBar';
 
 export default function Home() {
   const { 
@@ -20,14 +20,14 @@ export default function Home() {
     latestError
   } = useSocket(process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:4000');
   
-  const [filter, setFilter] = useState<'all' | 'error'>('all');
+  const [filter, setFilter] = useState<'all' | 'info' | 'success' | 'warning' | 'error'>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
   const filteredLogs = useMemo(() => {
     let result = logs;
     
-    if (filter === 'error') {
-      result = result.filter((log) => log.type === 'error');
+    if (filter !== 'all') {
+      result = result.filter((log) => log.type === filter);
     }
     
     if (searchQuery.trim()) {
@@ -46,16 +46,10 @@ export default function Home() {
         {/* Header Section */}
         <header className="flex items-center justify-between px-6 py-4 bg-zinc-950 border-b border-white/5 shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center font-black italic transform -skew-x-12 shadow-inner">
-              DL
-            </div>
             <div>
               <h1 className="text-lg font-black tracking-tight leading-tight uppercase transform skew-x-[-2deg]">
-                DevLog <span className="text-blue-500">Dashboard</span>
+                Devlog Stream <span className="text-blue-500">dashboard</span>
               </h1>
-              <p className="text-[10px] text-zinc-500 font-mono tracking-widest uppercase opacity-80">
-                Real-Time Monitoring Protocol v5.0
-              </p>
             </div>
           </div>
           
@@ -71,6 +65,9 @@ export default function Home() {
             </div>
           </div>
         </header>
+
+        {/* Real-time Stats Bar */}
+        <StatsBar logs={logs} isConnected={isConnected} />
 
         {/* Filters Top Bar */}
         <FilterBar 
@@ -102,7 +99,6 @@ export default function Home() {
 
         {/* Footer Section: Controls + Input */}
         <div className="flex flex-col shrink-0 relative z-40 bg-zinc-950">
-          <LogInput emitLog={emitLog} />
           <ControlBar 
             isConnected={isConnected}
             isPaused={isPaused}

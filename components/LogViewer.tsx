@@ -30,7 +30,7 @@ export const LogViewer: React.FC<LogViewerProps> = ({ logs, searchQuery }) => {
   return (
     <div 
       ref={scrollRef}
-      className="h-full overflow-y-auto overflow-x-hidden scroll-smooth scrollbar-thin scrollbar-thumb-zinc-700"
+      className="h-full overflow-y-auto overflow-x-hidden scroll-smooth"
     >
       <div className="flex flex-col">
         {logs.map((log) => (
