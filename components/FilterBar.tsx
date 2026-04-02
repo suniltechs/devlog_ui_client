@@ -52,7 +52,15 @@ export const FilterBar: React.FC<FilterBarProps> = ({ filter, setFilter, count, 
       {/* Search Bar */}
       <div className="flex-1 relative max-w-md mx-4">
         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <span className="text-zinc-500 text-sm">🔍</span>
+          <svg 
+            className="w-3.5 h-3.5 text-zinc-500" 
+            fill="none" 
+            viewBox="0 0 24 24" 
+            stroke="currentColor" 
+            strokeWidth="2.5"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
         </div>
         <input
           ref={searchInputRef}
