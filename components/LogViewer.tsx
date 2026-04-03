@@ -7,9 +7,11 @@ import { LogItem } from './LogItem';
 interface LogViewerProps {
   logs: LogEntry[];
   searchQuery?: string;
+  onLogSelect?: (log: LogEntry) => void;
+  selectedLogId?: string;
 }
 
-export const LogViewer: React.FC<LogViewerProps> = ({ logs, searchQuery }) => {
+export const LogViewer: React.FC<LogViewerProps> = ({ logs, searchQuery, onLogSelect, selectedLogId }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -34,7 +36,13 @@ export const LogViewer: React.FC<LogViewerProps> = ({ logs, searchQuery }) => {
     >
       <div className="flex flex-col">
         {logs.map((log) => (
-          <LogItem key={log.id} log={log} searchQuery={searchQuery} />
+          <LogItem 
+            key={log.id} 
+            log={log} 
+            searchQuery={searchQuery} 
+            onSelect={onLogSelect}
+            isExpanded={selectedLogId === log.id}
+          />
         ))}
       </div>
     </div>

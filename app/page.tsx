@@ -7,6 +7,7 @@ import { FilterBar } from '../components/FilterBar';
 import { ControlBar } from '../components/ControlBar';
 import { ErrorSpotlight } from '../components/ErrorSpotlight';
 import { StatsBar } from '../components/StatsBar';
+import { LogModal } from '../components/LogModal';
 
 export default function Home() {
   const { 
@@ -22,6 +23,7 @@ export default function Home() {
   
   const [filter, setFilter] = useState<'all' | 'info' | 'success' | 'warning' | 'error'>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedLog, setSelectedLog] = useState<LogEntry | null>(null);
 
   const filteredLogs = useMemo(() => {
     let result = logs;
@@ -80,11 +82,16 @@ export default function Home() {
         />
 
         {/* Error Spotlight Banner */}
-        <ErrorSpotlight errorLog={latestError} />
+        <ErrorSpotlight errorLog={latestError} onSelect={setSelectedLog} />
 
         {/* Large Log Viewer Area */}
         <div className="flex-1 relative bg-[radial-gradient(circle_at_center,_transparent_0%,_rgba(0,0,0,0.4)_100%)] overflow-hidden">
-          <LogViewer logs={filteredLogs} searchQuery={searchQuery} />
+          <LogViewer 
+            logs={filteredLogs} 
+            searchQuery={searchQuery} 
+            onLogSelect={setSelectedLog}
+            selectedLogId={selectedLog?.id}
+          />
           
           {/* Pause Overlay Indicator */}
           {isPaused && (
@@ -108,6 +115,14 @@ export default function Home() {
           />
         </div>
       </div>
+
+      {/* Log Detail Modal */}
+      {selectedLog && (
+        <LogModal 
+          log={selectedLog} 
+          onClose={() => setSelectedLog(null)} 
+        />
+      )}
     </main>
   );
 }
