@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { LogEntry } from '../hooks/useSocket';
-import { X, Copy, Check, Clock, Info, CheckCircle, AlertTriangle, AlertCircle } from 'lucide-react';
+import { X, Copy, Check, Clock, Info, CheckCircle, AlertTriangle, AlertCircle, Sparkles } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 
 interface LogModalProps {
   log: LogEntry;
@@ -26,6 +27,34 @@ const typeColors = {
 export const LogModal: React.FC<LogModalProps> = ({ log, onClose }) => {
   const [copied, setCopied] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
+  const [aiExplanation, setAiExplanation] = useState<string | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+  const handleExplain = async () => {
+    setIsAnalyzing(true);
+    try {
+      const response = await fetch('http://localhost:4000/api/ai/explain', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: log.message,
+          type: log.type,
+          source: log.source
+        })
+      });
+      const data = await response.json();
+      if (data.explanation) {
+        setAiExplanation(data.explanation);
+      } else {
+        setAiExplanation("Failed to generate explanation. " + (data.error || ''));
+      }
+    } catch (e) {
+      console.error(e);
+      setAiExplanation("Error connecting to the AI endpoint.");
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
 
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
@@ -106,6 +135,15 @@ export const LogModal: React.FC<LogModalProps> = ({ log, onClose }) => {
           
           <div className="flex items-center gap-2">
             <button 
+              onClick={handleExplain}
+              disabled={isAnalyzing}
+              className="px-3 py-1.5 flex items-center gap-2 hover:bg-purple-500/20 text-purple-400 hover:text-purple-300 rounded-lg transition-colors border border-purple-500/30 bg-purple-500/10 text-xs font-bold disabled:opacity-50"
+              title="Explain with AI"
+            >
+              <Sparkles className="w-4 h-4" />
+              {isAnalyzing ? 'Analyzing...' : 'Ask AI'}
+            </button>
+            <button 
               onClick={copyToClipboard}
               className="p-2 hover:bg-white/10 text-zinc-400 hover:text-white rounded-lg transition-colors group relative"
               title="Copy Message"
@@ -167,6 +205,32 @@ export const LogModal: React.FC<LogModalProps> = ({ log, onClose }) => {
               </pre>
             </div>
           </div>
+
+          {/* AI Explanation Section */}
+          {(isAnalyzing || aiExplanation) && (
+            <div className="space-y-2 mt-6 animate-in fade-in duration-300">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-purple-400" />
+                <label className="text-purple-400 text-[10px] uppercase font-bold tracking-widest">
+                  AI Analysis
+                </label>
+              </div>
+              <div className="bg-purple-950/20 rounded-xl border border-purple-500/20 p-5 text-[14px] leading-relaxed text-zinc-300">
+                {isAnalyzing ? (
+                  <div className="flex items-center gap-3 text-purple-400/70 font-mono text-sm animate-pulse">
+                    <span className="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <span className="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <span className="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+                    <span className="ml-2">Analyzing log context...</span>
+                  </div>
+                ) : (
+                  <div className="prose prose-invert prose-purple max-w-none prose-sm [&>p]:mb-4 [&>pre]:bg-black/50 [&>pre]:p-3 [&>pre]:rounded-lg [&>pre]:border [&>pre]:border-white/10 [&>ul]:list-disc [&>ul]:pl-5 [&>ol]:list-decimal [&>ol]:pl-5 [&>h1]:text-lg [&>h1]:font-bold [&>h2]:text-base [&>h2]:font-bold [&>h3]:text-sm [&>h3]:font-bold [&>code]:text-purple-300 [&>code]:bg-purple-500/20 [&>code]:px-1 [&>code]:rounded">
+                    <ReactMarkdown>{aiExplanation!}</ReactMarkdown>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* History / Occurrences */}
           {log.occurrences && log.occurrences.length > 1 && (
